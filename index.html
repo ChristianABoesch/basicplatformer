@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Platformer Game</title>
+    <style>
+        body { margin: 0; overflow: hidden; }
+        canvas { background: #87CEEB; display: block; margin: auto; }
+        #score { position: absolute; top: 10px; left: 10px; font-size: 24px; color: black; }
+        #winMessage { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 32px; color: green; display: none; }
+    </style>
+</head>
+<body>
+    <div id="score">Coins Collected: 0</div> <!-- Score display -->
+    <div id="winMessage">You Win!</div> <!-- Win message -->
+    <canvas id="gameCanvas" width="800" height="400"></canvas>
+    <audio id="backgroundMusic" src="audio/basicplatformer_musicloop.wav" preload="auto" loop></audio> <!-- Add background music -->
+    <audio id="jumpSound" src="audio/jump.wav" preload="auto"></audio>
+    <audio id="coinSound" src="coin-sound.mp3" preload="auto"></audio>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreDisplay = document.getElementById('score');
+        const winMessage = document.getElementById('winMessage');
+
+        let player = { x: 50, y: 300, width: 30, height: 30, dy: 0, gravity: 0.135, jumpPower: -10, grounded: false };
+        let keys = {};
+        let coins = [];
+        let score = 0;
+        let coinSize = 20; // Initial coin size
+        const winCondition = 30; // Number of coins to collect to win
+
+        // Function to create a new coin at a random position
+        function createCoin() {
+            const x = Math.random() * (canvas.width - coinSize); // Random x position
+            const y = Math.random() * (canvas.height - coinSize); // Random y position
+            coins.push({ x: x, y: y, width: coinSize, height: coinSize, collected: false });
+        }
+
+        // Create initial coin
+        createCoin();
+
+        function update() {
+            if (keys['ArrowRight']) player.x += 5;
+            if (keys['ArrowLeft']) player.x -= 5;
+            if (keys['ArrowUp'] && player.grounded) {
+                player.dy = player.jumpPower;
+                player.grounded = false;
+                document.getElementById('jumpSound').play();
+            }
+
+            player.dy += player.gravity;
+            player.y += player.dy;
+
+            if (player.y + player.height >= canvas.height) {
+                player.y = canvas.height - player.height;
+                player.grounded = true;
+                player.dy = 0;
+            }
+
+            // Check for coin collection
+            coins.forEach(coin => {
+                if (!coin.collected && player.x < coin.x + coin.width && player.x + player.width > coin.x &&
+                    player.y < coin.y + coin.height && player.y + player.height > coin.y) {
+                    coin.collected = true;
+                    score++;
+                    scoreDisplay.innerText = `Coins Collected: ${score}`; // Update score display
+                    document.getElementById('coinSound').play();
+                    coinSize *= 0.9; // Decrease coin size by 10%
+                    createCoin(); // Create a new coin when one is collected
+
+                    // Check win condition
+                    if (score >= winCondition) {
+                        winMessage.style.display = 'block'; // Show win message
+                    }
+                }
+            });
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'red';
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+
+            // Draw coins
+            coins.forEach(coin => {
+                if (!coin.collected) {
+                    ctx.fillStyle = 'gold';
+                    ctx.fillRect(coin.x, coin.y, coin.width, coin.height);
+                }
+            });
+
+            requestAnimationFrame(update);
+        }
+
+        window.addEventListener('keydown', (e) => { keys[e.key] = true; });
+        window.addEventListener('keyup', (e) => { keys[e.key] = false; });
+
+        // Start background music
+        document.getElementById('backgroundMusic').play();
+
+        update();
+    </script>
+</body>
+</html>
