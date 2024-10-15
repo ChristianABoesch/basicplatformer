@@ -18,6 +18,15 @@
         }
         #winMessage { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 32px; color: green; display: none; }
         #startButton { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 24px; padding: 10px 20px; }
+        #timer { 
+            position: absolute; 
+            bottom: 280px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            font-size: 24px; 
+            color: black; 
+            display: none; /* Initially hidden */
+        }
     </style>
 </head>
 <body>
@@ -29,6 +38,7 @@
     <audio id="jumpSound" src="audio/jump.wav" preload="auto"></audio>
     <audio id="coinSound" src="audio/coin.wav" preload="auto"></audio>
     <audio id="winSound" src="audio/basicplatformer_youwin.wav" preload="auto"></audio>
+    <div id="timer">Time Left: 60</div> <!-- Timer display -->
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
@@ -42,6 +52,8 @@
         let score = 0;
         let coinSize = 30; // Set initial coin size to match player size
         const winCondition = 30; // Number of coins to collect to win
+        let timer = 60; // Set timer for 60 seconds
+        let timerInterval;
 
         // Function to create a new coin at a random position
         function createCoin() {
@@ -110,8 +122,35 @@
             requestAnimationFrame(update);
         }
 
+        // Function to update the timer
+        function updateTimer() {
+            if (timer > 0) {
+                timer--;
+                document.getElementById('timer').innerText = `Time Left: ${timer}`; // Update timer display
+            } else {
+                endGame(); // End game when timer reaches zero
+            }
+        }
+
+        // Function to end the game
+        function endGame() {
+            clearInterval(timerInterval); // Stop the timer
+            alert("Game Over!"); // Alert the player
+            // Additional logic to reset or stop the game can be added here
+        }
+
+        // Function to handle winning the game
+        function playerWins() {
+            clearInterval(timerInterval); // Stop the timer
+            alert("Congratulations! You win!"); // Alert the player
+            // Additional logic for winning can be added here
+        }
+
         // Start game function
         function startGame() {
+            document.getElementById('timer').style.display = 'block'; // Show the timer
+            timer = 60; // Reset timer to 60 seconds
+            timerInterval = setInterval(updateTimer, 1000); // Start the timer
             scoreDisplay.style.display = 'block'; // Show score display
             startButton.style.display = 'none'; // Hide start button
             canvas.style.display = 'block'; // Show canvas
